@@ -54,7 +54,7 @@
 
     renderHeader(document.getElementById("header-mount"), {
       label: `${dept.short} DEPARTMENT`,
-      sub: role === "student" ? `${dept.name} — Signed in as ${getStudentName()}` : dept.name,
+      sub: role === "student" ? `${dept.name} — Signed in as ${getStudentRoll()}` : dept.name,
       showLogout: true
     });
     renderFooter(document.getElementById("footer-mount"));

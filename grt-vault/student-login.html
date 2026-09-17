@@ -15,7 +15,7 @@
   <div class="panel">
     <span class="stamp">STUDENT ACCESS</span>
     <h1 style="margin-top:14px;">Student Login</h1>
-    <p class="sub">Enter your roll number and name to browse and download resources for your department.</p>
+    <p class="sub">Enter your roll number to browse and download resources for your department.</p>
 
     <div class="form-error" id="form-error"></div>
 
@@ -24,10 +24,6 @@
         <label for="roll">Roll number</label>
         <input type="text" id="roll" placeholder="Enter your roll number" required>
         <small>Only GRT College students can sign in.</small>
-      </div>
-      <div class="field">
-        <label for="name">Full name</label>
-        <input type="text" id="name" placeholder="Enter your name" required>
       </div>
       <button type="submit" class="btn btn-primary btn-block">Continue</button>
     </form>
@@ -51,20 +47,19 @@
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const roll = document.getElementById("roll").value.trim();
-    const name = document.getElementById("name").value.trim();
 
-    if(!roll || !name){
-      errorBox.textContent = "Please enter both your roll number and name.";
+    if(!roll){
+      errorBox.textContent = "Please enter your roll number.";
       errorBox.style.display = "block";
       return;
     }
-    if(!roll.startsWith(STUDENT_ROLL_PREFIX)){
-      errorBox.textContent = `This vault is only for GRT College students.`;
+    if(!isValidStudentRoll(roll)){
+      errorBox.textContent = "Incorrect roll number. Please check and try again.";
       errorBox.style.display = "block";
-      return;
+      return; 
     }
 
-    setStudentLoggedIn(roll, name);
+    setStudentLoggedIn(roll);
     window.location.href = "department-select.html?role=student";
   });
 </script>

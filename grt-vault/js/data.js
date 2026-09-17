@@ -115,10 +115,15 @@ function deleteResource(slug, id){
 const ROLE_KEY = "grtvault_role";
 const PROF_EMAIL_KEY = "grtvault_professor_email";
 const STUDENT_ROLL_KEY = "grtvault_student_roll";
-const STUDENT_NAME_KEY = "grtvault_student_name";
+
 
 
 const STUDENT_ROLL_PREFIX = "1103";
+const STUDENT_ROLL_LENGTH = 12;
+
+function isValidStudentRoll(roll){
+return /^\d+$/.test(roll) && roll.length === STUDENT_ROLL_LENGTH && roll.startsWith(STUDENT_ROLL_PREFIX);
+}
 
 function getRole(){ return sessionStorage.getItem(ROLE_KEY); }
 
@@ -129,10 +134,9 @@ function setProfessorLoggedIn(email){
 function setAdminLoggedIn(){
   sessionStorage.setItem(ROLE_KEY, "admin");
 }
-function setStudentLoggedIn(roll, name){
+function setStudentLoggedIn(roll){
   sessionStorage.setItem(ROLE_KEY, "student");
   sessionStorage.setItem(STUDENT_ROLL_KEY, roll);
-  sessionStorage.setItem(STUDENT_NAME_KEY, name);
 }
 function getProfessorEmail(){
   return sessionStorage.getItem(PROF_EMAIL_KEY) || "faculty";
@@ -140,12 +144,8 @@ function getProfessorEmail(){
 function getStudentRoll(){
   return sessionStorage.getItem(STUDENT_ROLL_KEY) || "";
 }
-function getStudentName(){
-  return sessionStorage.getItem(STUDENT_NAME_KEY) || "Student";
-}
 function logoutAll(){
   sessionStorage.removeItem(ROLE_KEY);
   sessionStorage.removeItem(PROF_EMAIL_KEY);
   sessionStorage.removeItem(STUDENT_ROLL_KEY);
-  sessionStorage.removeItem(STUDENT_NAME_KEY);
 }

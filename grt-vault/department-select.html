@@ -37,7 +37,7 @@
 
     renderHeader(document.getElementById("header-mount"), {
       label: isProfessor ? "FACULTY UPLOAD DESK" : "STUDENT ACCESS",
-      sub: isProfessor ? `Signed in as ${getProfessorEmail()}` : `Signed in as ${getStudentName()} (${getStudentRoll()})`,
+      sub: isProfessor ? `Signed in as ${getProfessorEmail()}` : `Signed in as ${getStudentRoll()}`,
       showLogout: true
     });
     renderFooter(document.getElementById("footer-mount"));
