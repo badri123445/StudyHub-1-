@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRT College — StudyHub</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">GRT COLLEGE</div>
+    <h1>Welcome to the Resource Vault</h1>
+    <p>Question papers, notes and presentations — organised by department. Choose how you'd like to sign in.</p>
+  </section>
+
+  <div class="access-grid">
+    <a class="access-card" href="professor-login.html">
+      <div class="access-arrow">&rarr;</div>
+      <div class="access-icon">&#127891;</div>
+      <div class="access-title">Professor Access</div>
+      <div class="access-desc">Sign in with the faculty code and your college email to upload papers, notes and PPTs for your department.</div>
+    </a>
+
+    <a class="access-card" href="student-login.html">
+      <div class="access-arrow">&rarr;</div>
+      <div class="access-icon">&#128218;</div>
+      <div class="access-title">Student Access</div>
+      <div class="access-desc">Sign in with your roll number and name to browse and download question papers, notes and PPTs for your department.</div>
+    </a>
+
+    <a class="access-card" href="admin-login.html">
+      <div class="access-arrow">&rarr;</div>
+      <div class="access-icon">&#128274;</div>
+      <div class="access-title">Admin Access</div>
+      <div class="access-desc">Sign in with the single admin code to manage every department — add new ones, and upload or delete any file.</div>
+    </a>
+  </div>
+</main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT", sub: "Choose your access type" });
+  renderFooter(document.getElementById("footer-mount"));
+</script>
+</body>
+</html>

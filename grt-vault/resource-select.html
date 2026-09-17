@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Resource Type — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap" id="page-content"></main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const slug = qs("dept");
+  const dept = getDeptBySlug(slug);
+  const role = qs("role") === "admin" ? "admin" : (qs("role") === "professor" ? "professor" : "student");
+  const content = document.getElementById("page-content");
+
+  function needsLogin(){
+    if(role === "professor") return getRole() !== "professor";
+    if(role === "admin") return getRole() !== "admin";
+    if(role === "student") return getRole() !== "student";
+    return false;
+  }
+
+  if(!dept){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Department not found</h1>
+        <a class="btn btn-primary btn-block" href="index.html">Back home</a>
+      </div>
+    `;
+  } else if(needsLogin()){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    const loginPage = role === "admin" ? "admin-login.html" : role === "professor" ? "professor-login.html" : "student-login.html";
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Sign in required</h1>
+        <a class="btn btn-primary btn-block" href="${loginPage}">Go to login</a>
+      </div>
+    `;
+  } else {
+    const isUpload = role === "professor" || role === "admin";
+
+    renderHeader(document.getElementById("header-mount"), {
+      label: `${dept.short} DEPARTMENT`,
+      sub: role === "student" ? `${dept.name} — Signed in as ${getStudentName()}` : dept.name,
+      showLogout: true
+    });
+    renderFooter(document.getElementById("footer-mount"));
+
+    const backHref = role === "professor"
+      ? "department-select.html?role=professor"
+      : role === "admin"
+        ? "admin-dashboard.html"
+        : "department-select.html?role=student";
+
+    content.innerHTML = `
+      <section class="hero">
+        <div class="eyebrow">${dept.short} &middot; ${escapeHtml(dept.name)}</div>
+        <h1>What would you like to ${isUpload ? "manage" : "get"}?</h1>
+        <p>${isUpload ? "Choose which kind of resource you want to upload or remove." : "Choose which kind of resource you want to browse and download."}</p>
+      </section>
+
+      <div class="access-grid" id="resource-grid"></div>
+
+      <div class="actions-row" style="justify-content:center;">
+        <a class="btn btn-ghost" href="${backHref}">&larr; Change department</a>
+      </div>
+    `;
+
+    const icons = { paper: "&#128220;", note: "&#128221;", ppt: "&#128202;" };
+    const descriptions = {
+      paper: isUpload ? "Upload previous years' Assessment 1, Assessment 2, Model, University and Arrear question papers." : "Browse and download previous years' Assessment 1, Assessment 2, Model, University and Arrear question papers.",
+      note:  isUpload ? "Upload lecture notes and study material for your subjects." : "Browse and download lecture notes and study material.",
+      ppt:   isUpload ? "Upload lecture PPTs and presentation slides." : "Browse and download lecture PPTs and presentation slides.",
+    };
+
+    const grid = document.getElementById("resource-grid");
+    grid.innerHTML = CATEGORIES.map(c => {
+      const href = role === "student"
+        ? `vault.html?dept=${dept.slug}&cat=${c.value}`
+        : `manage.html?dept=${dept.slug}&role=${role}&cat=${c.value}`;
+      return `
+        <a class="access-card" href="${href}">
+          <div class="access-arrow">&rarr;</div>
+          <div class="access-icon">${icons[c.value]}</div>
+          <div class="access-title">${c.label}</div>
+          <div class="access-desc">${descriptions[c.value]}</div>
+        </a>
+      `;
+    }).join("");
+  }
+</script>
+</body>
+</html>

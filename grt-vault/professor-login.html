@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professor Login — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap">
+  <div class="panel">
+    <span class="stamp">FACULTY ACCESS</span>
+    <h1 style="margin-top:14px;">Professor Login</h1>
+    <p class="sub">Enter the faculty security code shared by the college, then your college email.</p>
+
+    <div class="form-error" id="form-error"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="fac-code">Faculty security code</label>
+        <input type="password" id="fac-code" placeholder="Enter the code shared with faculty" required>
+        <small>This confirms you're a member of staff before you sign in.</small>
+      </div>
+      <div class="field">
+        <label for="email">College email</label>
+        <input type="email" id="email" placeholder="name@grtcollege.edu" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Continue</button>
+    </form>
+
+    <div class="divider">or</div>
+    <a class="btn btn-outline btn-block" href="index.html">Back to access type</a>
+  </div>
+</main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  renderHeader(document.getElementById("header-mount"), { label: "FACULTY LOGIN", sub: "Professor access" });
+  renderFooter(document.getElementById("footer-mount"));
+
+  const form = document.getElementById("login-form");
+  const errorBox = document.getElementById("form-error");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const enteredCode = document.getElementById("fac-code").value.trim();
+    const email = document.getElementById("email").value.trim();
+
+    if(enteredCode !== PROFESSOR_CODE){
+      errorBox.textContent = "That faculty code isn't right. Check with the college and try again.";
+      errorBox.style.display = "block";
+      return;
+    }
+    if(!email){
+      errorBox.textContent = "Please enter your college email.";
+      errorBox.style.display = "block";
+      return;
+    }
+
+    setProfessorLoggedIn(email);
+    window.location.href = "department-select.html?role=professor";
+  });
+</script>
+</body>
+</html>

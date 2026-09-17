@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap" id="page-content"></main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const content = document.getElementById("page-content");
+
+  if(getRole() !== "admin"){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Sign in required</h1>
+        <p class="sub">You need the admin code to view this page.</p>
+        <a class="btn btn-primary btn-block" href="admin-login.html">Go to admin login</a>
+      </div>
+    `;
+  } else {
+    renderHeader(document.getElementById("header-mount"), {
+      label: "ADMIN DASHBOARD",
+      sub: "Full control over every department",
+      showLogout: true
+    });
+    renderFooter(document.getElementById("footer-mount"));
+
+    content.innerHTML = `
+      <section class="vault-hero">
+        <span class="stamp">ADMIN ACCESS</span>
+        <h1>Admin Dashboard</h1>
+        <p class="sub">Add new departments below, or open any department to upload and delete its papers, notes and PPTs.</p>
+      </section>
+
+      <div class="upload-panel">
+        <h2>Add a new department</h2>
+        <div class="form-error" id="dept-error"></div>
+        <div class="form-success" id="dept-success"></div>
+        <form id="dept-form">
+          <div class="upload-grid">
+            <div class="field">
+              <label for="dept-short">Short name</label>
+              <input type="text" id="dept-short" placeholder="e.g. CIVIL" required>
+            </div>
+            <div class="field" style="grid-column: span 2;">
+              <label for="dept-full">Full name</label>
+              <input type="text" id="dept-full" placeholder="e.g. Civil Engineering" required>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <button type="submit" class="btn btn-primary">Add department</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="section-title">All departments</div>
+      <div class="dept-list" id="dept-list"></div>
+    `;
+
+    function refreshDeptList(){
+      const listMount = document.getElementById("dept-list");
+      const depts = getDepartments();
+      listMount.innerHTML = depts.map(d => `
+        <div class="dept-list-row">
+          <div>
+            <div class="dl-name">${escapeHtml(d.short)}</div>
+            <div class="dl-full">${escapeHtml(d.name)}</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <a class="btn btn-ghost btn-small" href="resource-select.html?dept=${d.slug}&role=admin">Manage files</a>
+            ${isCustomDepartment(d.slug) ? `<button class="btn btn-danger" data-remove="${d.slug}">Remove</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+
+      listMount.querySelectorAll("[data-remove]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const slug = btn.getAttribute("data-remove");
+          if(confirm("Remove this department and everything uploaded to it? This can't be undone.")){
+            removeDepartment(slug);
+            refreshDeptList();
+          }
+        });
+      });
+    }
+    refreshDeptList();
+
+    const deptForm = document.getElementById("dept-form");
+    const deptError = document.getElementById("dept-error");
+    const deptSuccess = document.getElementById("dept-success");
+
+    deptForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      deptError.style.display = "none";
+      deptSuccess.style.display = "none";
+
+      const short = document.getElementById("dept-short").value;
+      const full = document.getElementById("dept-full").value;
+      const result = addDepartment(short, full);
+
+      if(!result.ok){
+        deptError.textContent = result.error;
+        deptError.style.display = "block";
+        return;
+      }
+
+      deptSuccess.textContent = `${short} added successfully.`;
+      deptSuccess.style.display = "block";
+      deptForm.reset();
+      refreshDeptList();
+    });
+  }
+</script>
+</body>
+</html>

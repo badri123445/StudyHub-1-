@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Department — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap" id="page-content">
+  <section class="hero">
+    <div class="eyebrow" id="eyebrow-label">GRT COLLEGE</div>
+    <h1>Choose your department</h1>
+    <p id="hero-copy">Pick a department to continue.</p>
+  </section>
+
+  <div class="dept-grid" id="dept-grid"></div>
+</main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const role = qs("role") === "professor" ? "professor" : "student";
+
+  if(role === "professor" && getRole() !== "professor"){
+    window.location.href = "professor-login.html";
+  } else if(role === "student" && getRole() !== "student"){
+    window.location.href = "student-login.html";
+  } else {
+    const isProfessor = role === "professor";
+
+    renderHeader(document.getElementById("header-mount"), {
+      label: isProfessor ? "FACULTY UPLOAD DESK" : "STUDENT ACCESS",
+      sub: isProfessor ? `Signed in as ${getProfessorEmail()}` : `Signed in as ${getStudentName()} (${getStudentRoll()})`,
+      showLogout: true
+    });
+    renderFooter(document.getElementById("footer-mount"));
+
+    document.getElementById("eyebrow-label").textContent = isProfessor ? "FACULTY ACCESS" : "STUDENT ACCESS";
+    document.getElementById("hero-copy").textContent = isProfessor
+      ? "Choose the department you teach in to upload papers, notes and PPTs."
+      : "Choose your department to browse and download question papers, notes and PPTs.";
+
+    renderDeptGrid(document.getElementById("dept-grid"), getDepartments(), (d) => {
+      return isProfessor
+        ? `resource-select.html?dept=${d.slug}&role=professor`
+        : `resource-select.html?dept=${d.slug}&role=student`;
+    });
+  }
+</script>
+</body>
+</html>

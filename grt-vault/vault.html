@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Department Vault — GRT College</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap" id="page-content"></main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const slug = qs("dept");
+  const dept = getDeptBySlug(slug);
+  const content = document.getElementById("page-content");
+
+  if(!dept){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Department not found</h1>
+        <p class="sub">Go back and choose a department from the list.</p>
+        <a class="btn btn-primary btn-block" href="department-select.html?role=student">Back to departments</a>
+      </div>
+    `;
+  } else if(getRole() !== "student"){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Sign in required</h1>
+        <p class="sub">You need to log in with your roll number and name to view the ${dept.short} vault.</p>
+        <a class="btn btn-primary btn-block" href="student-login.html">Go to student login</a>
+      </div>
+    `;
+  } else {
+    renderHeader(document.getElementById("header-mount"), {
+      label: `${dept.short} DEPARTMENT VAULT`,
+      sub: `Signed in as ${getStudentName()} (${getStudentRoll()})`,
+      showLogout: true
+    });
+    renderFooter(document.getElementById("footer-mount"));
+
+    content.innerHTML = `
+      <section class="vault-hero">
+        <span class="stamp">STUDENT ACCESS</span>
+        <h1>${dept.short} Department Vault</h1>
+        <p class="sub">${dept.name} &mdash; browse and download question papers, notes and PPTs.</p>
+        <div class="actions-row">
+          <a class="btn btn-ghost" href="department-select.html?role=student">Change department</a>
+        </div>
+      </section>
+
+      <div class="tab-row" id="tab-row"></div>
+      <div class="toolbar" id="toolbar-mount"></div>
+      <div class="ledger" id="ledger-mount"></div>
+    `;
+
+    let activeCategory = getCategory(qs("cat")).value;
+
+    function renderTabs(){
+      const tabRow = document.getElementById("tab-row");
+      tabRow.innerHTML = CATEGORIES.map(c => `
+        <button class="tab-btn ${c.value === activeCategory ? "active" : ""}" data-cat="${c.value}">${c.label}</button>
+      `).join("");
+      tabRow.querySelectorAll("[data-cat]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeCategory = btn.getAttribute("data-cat");
+          renderTabs();
+          setupToolbar();
+        });
+      });
+    }
+
+    function setupToolbar(){
+      const toolbarMount = document.getElementById("toolbar-mount");
+      renderToolbar(toolbarMount, { withExamType: activeCategory === "paper" });
+      refresh();
+
+      ["f-search", "f-year", "f-sem", "f-examtype"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.addEventListener(id === "f-search" ? "input" : "change", refresh);
+      });
+    }
+
+    function refresh(){
+      const list = getResources(dept.slug, activeCategory);
+      populateFilterOptions(list);
+      const filtered = applyFilters(list);
+      renderLedger(document.getElementById("ledger-mount"), filtered, { showDelete: false, showView: true });
+    }
+
+    renderTabs();
+    setupToolbar();
+  }
+</script>
+</body>
+</html>

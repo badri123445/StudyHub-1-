@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap">
+  <div class="panel">
+    <span class="stamp">ADMIN ACCESS</span>
+    <h1 style="margin-top:14px;">Admin Login</h1>
+    <p class="sub">Enter the single admin code to manage every department.</p>
+
+    <div class="form-error" id="form-error"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="admin-code">Admin security code</label>
+        <input type="password" id="admin-code" placeholder="Enter the admin code" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Continue</button>
+    </form>
+
+    <div class="divider">or</div>
+    <a class="btn btn-outline btn-block" href="index.html">Back to access type</a>
+  </div>
+</main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  renderHeader(document.getElementById("header-mount"), { label: "ADMIN LOGIN", sub: "Administrator access" });
+  renderFooter(document.getElementById("footer-mount"));
+
+  const form = document.getElementById("login-form");
+  const errorBox = document.getElementById("form-error");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const entered = document.getElementById("admin-code").value.trim();
+
+    if(entered !== ADMIN_CODE){
+      errorBox.textContent = "That admin code isn't right.";
+      errorBox.style.display = "block";
+      return;
+    }
+
+    setAdminLoggedIn();
+    window.location.href = "admin-dashboard.html";
+  });
+</script>
+</body>
+</html>

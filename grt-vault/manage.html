@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Resources — GRT College Vault</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="header-mount"></div>
+
+<main class="wrap" id="page-content"></main>
+
+<div id="footer-mount"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const slug = qs("dept");
+  const dept = getDeptBySlug(slug);
+  const role = qs("role") === "admin" ? "admin" : "professor";
+  const content = document.getElementById("page-content");
+
+  function needsLogin(){
+    return role === "admin" ? getRole() !== "admin" : getRole() !== "professor";
+  }
+
+  if(!dept){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Department not found</h1>
+        <a class="btn btn-primary btn-block" href="index.html">Back home</a>
+      </div>
+    `;
+  } else if(needsLogin()){
+    renderHeader(document.getElementById("header-mount"), { label: "GRT COLLEGE VAULT" });
+    renderFooter(document.getElementById("footer-mount"));
+    const loginPage = role === "admin" ? "admin-login.html" : "professor-login.html";
+    content.innerHTML = `
+      <div class="panel">
+        <h1>Sign in required</h1>
+        <p class="sub">You need to log in first to manage the ${dept.short} vault.</p>
+        <a class="btn btn-primary btn-block" href="${loginPage}">Go to login</a>
+      </div>
+    `;
+  } else {
+    const isAdmin = role === "admin";
+
+    renderHeader(document.getElementById("header-mount"), {
+      label: `${dept.short} UPLOAD DESK`,
+      sub: isAdmin ? "Admin — full access" : `Signed in as ${getProfessorEmail()}`,
+      showLogout: true
+    });
+    renderFooter(document.getElementById("footer-mount"));
+
+    const backHref = isAdmin ? "admin-dashboard.html" : "department-select.html?role=professor";
+    const backLabel = isAdmin ? "Back to admin dashboard" : "Change department";
+
+    content.innerHTML = `
+      <section class="vault-hero">
+        <span class="stamp">${isAdmin ? "ADMIN DASHBOARD" : "FACULTY DASHBOARD"}</span>
+        <h1>${dept.short} Upload Desk</h1>
+        <p class="sub">Papers, notes and PPTs you upload here appear immediately in the ${dept.short} student vault.</p>
+        <div class="actions-row">
+          <a class="btn btn-ghost" href="${backHref}">${backLabel}</a>
+        </div>
+      </section>
+
+      <div class="upload-panel">
+        <h2>Upload a resource</h2>
+        <div class="form-error" id="upload-error"></div>
+        <form id="upload-form">
+          <div class="upload-grid">
+            <div class="field">
+              <label for="category">Resource type</label>
+              <select id="category">
+                ${CATEGORIES.map(c => `<option value="${c.value}">${c.label}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field" id="examtype-field">
+              <label for="examtype">Exam type</label>
+              <select id="examtype">
+                ${EXAM_TYPES.map(e => `<option value="${e.value}">${e.label}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="title">Title / paper name</label>
+              <input type="text" id="title" placeholder="e.g. Data Structures — Mid Semester 1" required>
+            </div>
+            <div class="field">
+              <label for="year">Year (e.g. 2025)</label>
+              <input type="text" id="year" placeholder="e.g. 2025" required>
+            </div>
+            <div class="field">
+              <label for="semester">Semester</label>
+              <select id="semester">
+                ${SEMESTERS.map(s => `<option value="${s.value}">${s.label}</option>`).join("")}
+              </select>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="file">File <span id="accept-hint"></span></label>
+              <input type="file" id="file" required>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="tab-row" id="tab-row"></div>
+      <div class="section-title">Previously uploaded — ${dept.short}</div>
+      <div class="ledger" id="ledger-mount"></div>
+    `;
+
+    let activeTab = getCategory(qs("cat")).value;
+
+    const categorySel = document.getElementById("category");
+    categorySel.value = activeTab;
+    const examField = document.getElementById("examtype-field");
+    const fileInput = document.getElementById("file");
+    const acceptHint = document.getElementById("accept-hint");
+
+    function syncCategoryUI(){
+      const cat = getCategory(categorySel.value);
+      examField.style.display = cat.value === "paper" ? "block" : "none";
+      fileInput.setAttribute("accept", cat.accept);
+      acceptHint.textContent = `(${cat.acceptLabel})`;
+    }
+    categorySel.addEventListener("change", syncCategoryUI);
+    syncCategoryUI();
+
+    function renderTabs(){
+      const tabRow = document.getElementById("tab-row");
+      tabRow.innerHTML = CATEGORIES.map(c => `
+        <button class="tab-btn ${c.value === activeTab ? "active" : ""}" data-cat="${c.value}">${c.label}</button>
+      `).join("");
+      tabRow.querySelectorAll("[data-cat]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeTab = btn.getAttribute("data-cat");
+          renderTabs();
+          refreshLedger();
+        });
+      });
+    }
+
+    function refreshLedger(){
+      renderLedger(document.getElementById("ledger-mount"), getResources(dept.slug, activeTab), {
+        showDelete: true,
+        onDelete: (id) => { deleteResource(dept.slug, id); refreshLedger(); }
+      });
+    }
+
+    renderTabs();
+    refreshLedger();
+
+    const form = document.getElementById("upload-form");
+    const errorBox = document.getElementById("upload-error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorBox.style.display = "none";
+
+      const category = categorySel.value;
+      const cat = getCategory(category);
+      const examType = category === "paper" ? document.getElementById("examtype").value : null;
+      const title = document.getElementById("title").value.trim();
+      const year = document.getElementById("year").value.trim();
+      const semester = document.getElementById("semester").value;
+      const file = fileInput.files[0];
+
+      if(!file){
+        errorBox.textContent = "Please choose a file.";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      const okType =
+        cat.value === "ppt"
+          ? /\.(ppt|pptx|pdf)$/i.test(file.name)
+          : file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+      if(!okType){
+        errorBox.textContent = cat.value === "ppt" ? "Only PPT or PDF files are accepted." : "Only PDF files are accepted.";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      try{
+        const dataUrl = await fileToDataUrl(file);
+        addResource(dept.slug, {
+          id: `${Date.now()}`,
+          category,
+          examType,
+          title, year, semester,
+          fileName: file.name,
+          dataUrl,
+          uploadedAt: new Date().toISOString()
+        });
+        form.reset();
+        syncCategoryUI();
+        activeTab = category;
+        renderTabs();
+        refreshLedger();
+        showToast("Upload successful!");
+      }catch(err){
+        errorBox.textContent = "Couldn't read that file. Please try again.";
+        errorBox.style.display = "block";
+      }
+    });
+  }
+</script>
+</body>
+</html>
